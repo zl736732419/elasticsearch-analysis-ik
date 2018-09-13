@@ -22,6 +22,16 @@ import java.util.Map;
 public class DBUtil {
     private static final Logger logger = ESLoggerFactory.getLogger(DBUtil.class);
     
+    static {
+        logger.info("load mysql driver...");
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (Exception e) {
+            logger.error("load db class error. info: {}", e);
+        }
+        logger.info("load mysql driver success...");
+    }
+    
     private DBUtil() {
     }
     
@@ -33,16 +43,11 @@ public class DBUtil {
         private static DBUtil instance = new DBUtil();
     }
     
-    public Connection getConnection(String driverClassName, String url, String username, String password) {
-        try {
-            Class.forName(driverClassName);
-        } catch (ClassNotFoundException e) {
-            logger.error("load db class {} error. info: {}", driverClassName, e);
-        }
+    public Connection getConnection(String url, String username, String password) {
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(url, username, password);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             logger.error("get db connection error. info: {}", e);
         }
         return connection;
@@ -72,21 +77,23 @@ public class DBUtil {
         }
     }
     
-    public List<Map<String, Object>> listSql(String driverClassName, String url, String username, String password, 
+    public List<Map<String, Object>> listSql(String url, String username, String password, 
                                 String sql, List<String> columns) {
+        logger.info("execute list sql: {}", sql);
         if (StringUtils.isEmpty(sql) || StringUtils.isEmpty(columns)) {
             logger.error("invalid params: sql: {}, columns: {}", sql, columns);
             return null;
         }
-        Connection connection = getConnection(driverClassName, url, username, password);
+        Connection connection = getConnection(url, username, password);
         if (StringUtils.isEmpty(connection)) {
-            logger.error("get db connection error. params: {}, {}, {}, {}", driverClassName, url, username, password);
+            logger.error("get db connection error. params: {}, {}, {}", url, username, password);
             return null;
         }
+        logger.info("get db connection success.");
         PreparedStatement pstat;
         try {
             pstat = connection.prepareStatement(sql);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             logger.error("create prepare statement error. info: {}", e);
             return null;
         }
@@ -100,7 +107,7 @@ public class DBUtil {
                 for (String column : columns) {
                     try {
                         value = rs.getObject(column);
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         logger.error("get column [{}] value from db error. info: {}", column, e);
                         throw e;
                     }
@@ -108,7 +115,7 @@ public class DBUtil {
                 }
                 result.add(map);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             logger.error("execute sql query error, sql: {}, info: {}", sql, e);
             return null;
         } finally {

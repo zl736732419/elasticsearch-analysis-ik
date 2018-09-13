@@ -417,7 +417,7 @@ public class Dictionary {
 	 * 从数据库中加载热词
 	 */
 	private void loadDBHotWordMainDict() {
-		logger.error("load db hot word dic...");
+		logger.info("load db hot word dic...");
 		new DBHotWordExecutor().loadExtWord();
 	}
 

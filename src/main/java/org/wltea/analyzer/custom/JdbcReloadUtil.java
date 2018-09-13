@@ -39,7 +39,10 @@ public class JdbcReloadUtil {
     private void loadDBReloadProps() {
         this.props = new Properties();
         InputStream input = null;
-        Path configFile = Dictionary.getSingleton().getConf_dir().resolve(FILE_NAME);
+        Path confDirPath = Dictionary.getSingleton().getConf_dir();
+//        Path confDirPath = new File("E:\\workspace\\elasticsearch-analysis-ik\\config").toPath();
+        logger.info("conf dir path: {}....", confDirPath);
+        Path configFile = confDirPath.resolve(FILE_NAME);
         try {
             logger.info("try load hot word db config from {}", configFile);
             input = new FileInputStream(configFile.toFile());

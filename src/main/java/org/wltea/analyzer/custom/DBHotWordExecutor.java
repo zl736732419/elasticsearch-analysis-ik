@@ -37,6 +37,7 @@ public class DBHotWordExecutor extends DBAbstractExecutor {
     protected String getWord(Map<String, Object> map) {
         Object value = map.get(HOT_WORD);
         if (StringUtils.isEmpty(value)) {
+            logger.warn("this record from db is invalid, don't have {} column", HOT_WORD);
             return null;
         }
         String word = value.toString();
