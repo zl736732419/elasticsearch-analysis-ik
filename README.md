@@ -270,3 +270,5 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 说明
 ------
 自定义实现从mysql数据库定期更新热词、停用词字典功能
+
+the custom load words api which included in elasticsearch-analysis-server project ! 
