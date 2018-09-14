@@ -5,7 +5,6 @@ import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.wltea.analyzer.dic.DictSegment;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +21,7 @@ public abstract class DBAbstractExecutor {
     public void loadExtWord() {
         logger.info("load custom {} dict.....", getDictName());
         // 每个60秒重新更新一次热词
-        Integer interval = JdbcReloadUtil.getInstance().getIntProperty("jdbc.reload.interval");
+        Integer interval = PropertyUtil.getInstance().getIntProperty("jdbc.reload.interval");
         if (StringUtils.isEmpty(interval)) {
             interval = 60000; 
         }
@@ -41,25 +40,15 @@ public abstract class DBAbstractExecutor {
         @Override
         public void run() {
             try {
-                logger.info("fix schedule load dic {} start...", getDictName());
-                JdbcReloadUtil instance = JdbcReloadUtil.getInstance();
-                String url = instance.getUrl();
-                String username = instance.getUsername();
-                String password = instance.getPassword();
-                // 获取热词更新sql
-                String sql = getSql();
-                logger.info("custom dict load sql: {}", sql);
-                List<String> columns = getColumns();
-                List<Map<String, Object>> result = DBUtil.getInstance().listSql(url, username, password,
-                        sql, columns);
-                logger.info("load dict {} words from db, result: {}", getDictName(), result);
-                if (StringUtils.isEmpty(result)) {
-                    logger.debug("no result for dict {} words from db.");
+                String location = getLocation();
+                logger.info("load dict {} words from remote, location: {}", getDictName(), location);
+                List<String> words = HttpUtil.getRemoteWords(location);
+                if (StringUtils.isEmpty(words)) {
+                    logger.debug("no result for dict {} from db.");
                     return;
                 }
                 DictSegment dict = getDictSegment();
-                result.stream().forEach(map -> {
-                    String word = getWord(map);
+                words.stream().forEach(word -> {
                     if (StringUtils.isEmpty(word)) {
                         return;
                     }
@@ -72,9 +61,7 @@ public abstract class DBAbstractExecutor {
         }
     }
     
-    protected abstract String getSql();
-    protected abstract List<String> getColumns();
-    protected abstract String getWord(Map<String, Object> map);
+    protected abstract String getLocation();
     protected abstract DictSegment getDictSegment();
     protected abstract String getDictName();
 }

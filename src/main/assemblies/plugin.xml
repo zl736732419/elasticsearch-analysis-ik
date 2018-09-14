@@ -39,7 +39,6 @@
             <useTransitiveFiltering>true</useTransitiveFiltering>
             <includes>
                 <include>org.apache.httpcomponents:httpclient</include>
-                <include>mysql:mysql-connector-java</include>
                 <include>org.apache.commons:commons-lang3</include>
             </includes>
         </dependencySet>

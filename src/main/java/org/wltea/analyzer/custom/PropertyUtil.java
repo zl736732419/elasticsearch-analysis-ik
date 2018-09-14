@@ -14,40 +14,35 @@ import java.util.Properties;
  * @Author zhenglian
  * @Date 2018/9/12 20:55
  */
-public class JdbcReloadUtil {
-    private static final Logger logger = ESLoggerFactory.getLogger(JdbcReloadUtil.class);
-    private static final String FILE_NAME = "jdbc-reload.properties";
+public class PropertyUtil {
+    private static final Logger logger = ESLoggerFactory.getLogger(PropertyUtil.class);
+    private static final String FILE_NAME = "word-reload.properties";
     private Properties props;
     
-    private String driverClassName;
-    private String url;
-    private String username;
-    private String password;
-    
-    private JdbcReloadUtil() {
-        loadDBReloadProps();
-    }
+    private String hotWordLocation;
+    private String stopWordLocation;
     
     private static class Inner {
-        private static JdbcReloadUtil instance = new JdbcReloadUtil();
+        private static PropertyUtil instance = new PropertyUtil();
     }
     
-    public static JdbcReloadUtil getInstance() {
+    public static PropertyUtil getInstance() {
         return Inner.instance;
     }
 
-    private void loadDBReloadProps() {
+    private void loadReloadPropFile() {
         this.props = new Properties();
         InputStream input = null;
         Path confDirPath = Dictionary.getSingleton().getConf_dir();
+        // windows environment test used path
 //        Path confDirPath = new File("E:\\workspace\\elasticsearch-analysis-ik\\config").toPath();
         logger.info("conf dir path: {}....", confDirPath);
         Path configFile = confDirPath.resolve(FILE_NAME);
         try {
-            logger.info("try load hot word db config from {}", configFile);
+            logger.info("try load hot word config from {}", configFile);
             input = new FileInputStream(configFile.toFile());
         } catch (FileNotFoundException e) {
-            logger.error("load hot word db config error {}", e);
+            logger.error("load hot word config error {}", e);
         }
         if (input != null) {
             try {
@@ -56,14 +51,10 @@ public class JdbcReloadUtil {
                 logger.error("ik-analyzer load hot word db config", e);
             }
         }
-        
-        driverClassName = getStringProperty("jdbc.driverClassName");
-        url = getStringProperty("jdbc.url");
-        username = getStringProperty("jdbc.username");
-        password = getStringProperty("jdbc.password");
     }
-    
+
     public Object getProperty(String key) {
+        loadReloadPropFile();
         if (StringUtils.isEmpty(key)) {
             return null;
         }
@@ -71,6 +62,7 @@ public class JdbcReloadUtil {
     }
 
     public String getStringProperty(String key) {
+        loadReloadPropFile();
         Object object = getProperty(key);
         if (StringUtils.isEmpty(object)) {
             return null;
@@ -79,6 +71,7 @@ public class JdbcReloadUtil {
     }
 
     public Integer getIntProperty(String key) {
+        loadReloadPropFile();
         Object object = getProperty(key);
         if (StringUtils.isEmpty(object)) {
             return null;
@@ -86,19 +79,15 @@ public class JdbcReloadUtil {
         return NumberUtil.parseInt(object);
     }
 
-    public String getDriverClassName() {
-        return driverClassName;
+    public String getHotWordLocation() {
+        loadReloadPropFile();
+        hotWordLocation = getStringProperty("es.hot_word.reload.location");
+        return hotWordLocation;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
+    public String getStopWordLocation() {
+        loadReloadPropFile();
+        stopWordLocation = getStringProperty("es.stop_word.reload.location");
+        return stopWordLocation;
     }
 }
